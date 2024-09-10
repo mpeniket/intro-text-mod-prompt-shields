@@ -22,6 +22,8 @@ import {
 } from "@fluentui/react";
 import { continueConversation } from "@/actions/continueConversation";
 import { readStreamableValue } from "ai/rsc";
+import safetyCheck from "@/actions/safetyCheck"
+
 
 const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 const ClientSideMessageBar = dynamic(
@@ -48,6 +50,7 @@ const GenericChatbot = () => {
   const [localInput, setLocalInput] = useState("");
   const [error, setError] = useState(null);
   const messageAreaRef = useRef(null);
+  const [errorType, setErrorType] = useState(MessageBarType.error);
 
   useEffect(() => {
     setStarters(CONVERSATION_STARTERS);
@@ -75,10 +78,6 @@ const GenericChatbot = () => {
     setLocalInput((input) => (input.trim() + " " + starter).trim());
   }, []);
 
-  const handleReload = useCallback(() => {
-    setError(null);
-  }, []);
-
   const handleFormSubmit = useCallback(
     async (e) => {
       if (typeof window === "undefined") return;
@@ -88,17 +87,53 @@ const GenericChatbot = () => {
         setStarters([]);
       }
       if (!localInput.trim()) return;
+  
+      // Perform safety check
+      const safetyCheckResult = await safetyCheck(localInput);
+      if (safetyCheckResult === null) {
+        setError("Error checking message safety. Please try again.");
+        setErrorType(MessageBarType.error);
+        return;
+      }
+  
+      // Extract data from safety check result
+      const { 
+        attackDetected: { attackDetected }, 
+        returnCategoriesAnalysis: { returnCategoriesAnalysis } 
+      } = safetyCheckResult;
 
+      console.log("attackDetected", attackDetected, "returnCategoriesAnalysis", returnCategoriesAnalysis)
+      
+      if ( attackDetected || Object.values(returnCategoriesAnalysis).some(severity => severity > 0)) {
+        const safetyMessages = [];
+        console.log("inside if", attackDetected);
+        console.log("inside if", returnCategoriesAnalysis)
+        if (attackDetected) {
+          safetyMessages.push("potential jailbreak");
+        }
+        Object.entries(returnCategoriesAnalysis).forEach(([category, severity]) => {
+          if (severity > 0) {
+            safetyMessages.push(category.toLowerCase());
+          }
+        });
+  
+        const safetyMessage = `Sorry, we can't process that message as it seems you are trying to send inappropriate content. Detected: ${safetyMessages.join(", ")}.`;
+        setError(safetyMessage);
+        setErrorType(MessageBarType.blocked);
+        return;
+      }
+  
+      // If safety check passes, proceed with the original logic
+      setError(null);
       const userMessage = { role: "user", content: localInput };
       setMessages((prev) => [...prev, userMessage]);
       setLocalInput("");
       setIsLoading(true);
-      setError(null);
-
+  
       try {
         const { messages: updatedMessages, newMessage } =
           await continueConversation([...messages, userMessage]);
-
+  
         let textContent = "";
         for await (const delta of readStreamableValue(newMessage)) {
           textContent = `${textContent}${delta}`;
@@ -110,6 +145,7 @@ const GenericChatbot = () => {
       } catch (error) {
         console.error("Error in conversation:", error);
         setError("An error occurred. Please try again.");
+        setErrorType(MessageBarType.error);
       } finally {
         setIsLoading(false);
       }
@@ -167,9 +203,9 @@ const GenericChatbot = () => {
         </Label>
         {error && (
           <ClientSideMessageBar
-            messageBarType={MessageBarType.error}
+            messageBarType={errorType}
             isMultiline={false}
-            onDismiss={handleReload}
+            onDismiss={() => setError(null)}
             dismissButtonAriaLabel="Close"
           >
             {error}
