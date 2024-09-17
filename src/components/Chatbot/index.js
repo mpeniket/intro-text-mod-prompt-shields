@@ -9,11 +9,9 @@ import dynamic from "next/dynamic";
 import {
   Stack,
   TextField,
-  PrimaryButton,
   IconButton,
   MessageBarType,
   Label,
-  TooltipHost,
   Persona,
   PersonaSize,
   Spinner,
@@ -28,6 +26,10 @@ import safetyCheck from "@/actions/safetyCheck"
 const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 const ClientSideMessageBar = dynamic(
   () => import("@fluentui/react").then((mod) => mod.MessageBar),
+  { ssr: false }
+);
+const ClientSidePrimaryButton = dynamic(
+  () => import("@fluentui/react").then((mod) => mod.PrimaryButton),
   { ssr: false }
 );
 
@@ -288,8 +290,8 @@ const GenericChatbot = () => {
           tokens={{ childrenGap: 10 }}
         >
           {starters.map((starter, index) => (
-            <TooltipHost content={starter} key={index}>
               <Label
+              key={index}
                 styles={{
                   root: {
                     padding: "5px 10px",
@@ -305,7 +307,6 @@ const GenericChatbot = () => {
               >
                 {starter}
               </Label>
-            </TooltipHost>
           ))}
         </Stack>
         <Stack
@@ -326,8 +327,14 @@ const GenericChatbot = () => {
             rows={3}
             resizable={false}
             autoComplete="off"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleFormSubmit(e);
+              }
+            }}
           />
-          <PrimaryButton
+          <ClientSidePrimaryButton
             id="send-button"
             text="Send"
             onClick={handleFormSubmit}
