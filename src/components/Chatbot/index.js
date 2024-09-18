@@ -20,8 +20,7 @@ import {
 } from "@fluentui/react";
 import { continueConversation } from "@/actions/continueConversation";
 import { readStreamableValue } from "ai/rsc";
-import safetyCheck from "@/actions/safetyCheck"
-
+import safetyCheck from "@/actions/safetyCheck";
 
 const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 const ClientSideMessageBar = dynamic(
@@ -39,7 +38,6 @@ const CONVERSATION_STARTERS = [
   "How do I get started?",
   "Can you assist with any questions I have?",
 ];
-
 
 const GenericChatbot = () => {
   const [starters, setStarters] = useState([]);
@@ -89,7 +87,7 @@ const GenericChatbot = () => {
         setStarters([]);
       }
       if (!localInput.trim()) return;
-  
+
       // Perform safety check
       const safetyCheckResult = await safetyCheck(localInput);
       if (safetyCheckResult === null) {
@@ -97,45 +95,57 @@ const GenericChatbot = () => {
         setErrorType(MessageBarType.error);
         return;
       }
-  
+
       // Extract data from safety check result
-      const { 
-        attackDetected: { attackDetected }, 
-        returnCategoriesAnalysis: { returnCategoriesAnalysis } 
+      const {
+        attackDetected: { attackDetected },
+        returnCategoriesAnalysis: { returnCategoriesAnalysis },
       } = safetyCheckResult;
 
-      console.log("attackDetected", attackDetected, "returnCategoriesAnalysis", returnCategoriesAnalysis)
-      
-      if ( attackDetected || Object.values(returnCategoriesAnalysis).some(severity => severity > 0)) {
+      console.log(
+        "attackDetected",
+        attackDetected,
+        "returnCategoriesAnalysis",
+        returnCategoriesAnalysis
+      );
+
+      if (
+        attackDetected ||
+        Object.values(returnCategoriesAnalysis).some((severity) => severity > 0)
+      ) {
         const safetyMessages = [];
         console.log("inside if", attackDetected);
-        console.log("inside if", returnCategoriesAnalysis)
+        console.log("inside if", returnCategoriesAnalysis);
         if (attackDetected) {
           safetyMessages.push("potential jailbreak");
         }
-        Object.entries(returnCategoriesAnalysis).forEach(([category, severity]) => {
-          if (severity > 0) {
-            safetyMessages.push(category.toLowerCase());
+        Object.entries(returnCategoriesAnalysis).forEach(
+          ([category, severity]) => {
+            if (severity > 0) {
+              safetyMessages.push(category.toLowerCase());
+            }
           }
-        });
-  
-        const safetyMessage = `Sorry, we can't process that message as it seems you are trying to send inappropriate content. Detected: ${safetyMessages.join(", ")}.`;
+        );
+
+        const safetyMessage = `Sorry, we can't process that message as it seems you are trying to send inappropriate content. Detected: ${safetyMessages.join(
+          ", "
+        )}.`;
         setError(safetyMessage);
         setErrorType(MessageBarType.blocked);
         return;
       }
-  
+
       // If safety check passes, proceed with the original logic
       setError(null);
       const userMessage = { role: "user", content: localInput };
       setMessages((prev) => [...prev, userMessage]);
       setLocalInput("");
       setIsLoading(true);
-  
+
       try {
         const { messages: updatedMessages, newMessage } =
           await continueConversation([...messages, userMessage]);
-  
+
         let textContent = "";
         for await (const delta of readStreamableValue(newMessage)) {
           textContent = `${textContent}${delta}`;
@@ -157,18 +167,43 @@ const GenericChatbot = () => {
 
   const renderMessageContent = useCallback((content) => {
     if (typeof window === "undefined") return null;
-    return <ReactMarkdown>{content}</ReactMarkdown>;
+
+    return (
+      <ReactMarkdown
+        components={{
+          p: ({ children }) => (
+            <p style={{ margin: "10px 0", lineHeight: "1.5" }}>{children}</p>
+          ),
+          ul: ({ children }) => (
+            <ul style={{ paddingLeft: "20px", margin: "10px 0" }}>
+              {children}
+            </ul>
+          ),
+          ol: ({ children }) => (
+            <ol style={{ paddingLeft: "20px", margin: "10px 0" }}>
+              {children}
+            </ol>
+          ),
+          li: ({ children }) => (
+            <li style={{ margin: "5px 0", listStyleType: "disc" }}>
+              {children}
+            </li>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    );
   }, []);
 
   const filteredMessages = useMemo(() => messages, [messages]);
-
 
   const ForwardRefStack = React.forwardRef((props, ref) => (
     <Stack {...props} elementRef={ref} />
   ));
 
-  ForwardRefStack.displayName = 'ForwardRefStack';
-  
+  ForwardRefStack.displayName = "ForwardRefStack";
+
   return (
     <Stack
       horizontalAlign="center"
@@ -176,7 +211,7 @@ const GenericChatbot = () => {
       styles={{
         root: {
           width: "100%",
-          maxWidth: "1400px",
+          maxWidth: "1600px",
           margin: "0 auto",
           height: "100%",
           padding: "20px",
@@ -223,7 +258,7 @@ const GenericChatbot = () => {
         <ForwardRefStack
           verticalFill
           styles={{
-            root: { height: "40vh", overflowY: "auto", padding: "10px 0" },
+            root: { height: "55vh", overflowY: "auto", padding: "10px 0" },
           }}
           tokens={{ childrenGap: 10 }}
           ref={messageAreaRef}
@@ -244,23 +279,25 @@ const GenericChatbot = () => {
                 />
               ) : (
                 <Persona
-                size={PersonaSize.size32}
-                imageInitials="AI"
-                styles={{
-                  root: { marginLeft: "8px" },
-                }}
-              />
+                  size={PersonaSize.size32}
+                  imageInitials="AI"
+                  styles={{
+                    root: { marginLeft: "8px" },
+                  }}
+                />
               )}
               <Stack
                 styles={{
                   root: {
-                    padding: "10px 15px",
+                    padding: "5px 15px",
                     borderRadius: "4px",
                     backgroundColor:
                       message.role === "user" ? "#0078d4" : "#f3f2f1",
                     color: message.role === "user" ? "white" : "black",
                     maxWidth: "60%",
                     wordBreak: "break-word",
+                    overflowWrap: "break-word",
+                    overflow: "hidden",
                   },
                 }}
               >
@@ -286,12 +323,20 @@ const GenericChatbot = () => {
         <Separator />
         <Stack
           horizontal
-          styles={{ root: { paddingTop: "10px" } }}
+          styles={{
+            root: {
+              paddingTop: isFirstSubmit ? "10px" : "0",
+              height: isFirstSubmit ? "auto" : "0",
+              overflow: "hidden",
+              transition: "height 0.3s ease-in-out",
+            },
+          }}
           tokens={{ childrenGap: 10 }}
         >
-          {starters.map((starter, index) => (
+          {isFirstSubmit &&
+            starters.map((starter, index) => (
               <Label
-              key={index}
+                key={index}
                 styles={{
                   root: {
                     padding: "5px 10px",
@@ -307,18 +352,18 @@ const GenericChatbot = () => {
               >
                 {starter}
               </Label>
-          ))}
+            ))}
         </Stack>
         <Stack
           as="form"
           onSubmit={handleFormSubmit}
           horizontal
           verticalAlign="end"
-          styles={{ root: { paddingTop: "20px" } }}
+          styles={{ root: { paddingTop: "5px" } }}
           tokens={{ childrenGap: 10 }}
         >
           <TextField
-            id="chatbot-input-field" 
+            id="chatbot-input-field"
             placeholder="Start messaging"
             value={localInput}
             onChange={(e) => setLocalInput(e.target.value)}
@@ -328,7 +373,7 @@ const GenericChatbot = () => {
             resizable={false}
             autoComplete="off"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 handleFormSubmit(e);
               }
