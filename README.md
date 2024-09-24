@@ -546,8 +546,7 @@ We've built a Next.js chatbot with a Fluent UI front-end that integrates Microso
 - [Azure OpenAI Service Documentation](https://learn.microsoft.com/en-gb/azure/ai-services/openai/overview)
 - [Microsoft Fluent UI - React Documentation](https://developer.microsoft.com/fluentui#/get-started/web)
 - [Next.js Documentation](https://nextjs.org/docs)
-- [Micrsoft Developer YouTube - Azure AI Content Safety Playlist](https://www.youtube.com/watch?v=ejiel1cwl5c&list=PLlrxD0HtieHjaQ9bJjyp1T7FeCbmVcPkQ&index=1)
-- 
+- [Microsoft Developer YouTube - Azure AI Content Safety Playlist](https://www.youtube.com/watch?v=ejiel1cwl5c&list=PLlrxD0HtieHjaQ9bJjyp1T7FeCbmVcPkQ&index=1)
 
 ---
 
