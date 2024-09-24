@@ -13,7 +13,7 @@
     "@fluentui/react": "^8.120.7",
     "@fluentui/web-components": "^2.6.1",
     "ai": "^3.3.26",
-    "next": "14.2.7",
+    "next": "^14.2.13",
     "react": "^18",
     "react-dom": "^18",
     "react-markdown": "^9.0.1"
