@@ -98,11 +98,14 @@ cd intro-text-mod-prompt-shields
 
 Install the required dependencies:
 ```bash
-npm install @fluentui/react ai @ai-sdk/azure
+npm install @fluentui/react ai @ai-sdk/azure @fluentui/web-components
 ```
 
-- `@fluentui/react`: For UI components.
+- `@fluentui/react` and `@fluentui/web-components`: For UI components.
 - `ai` and `@ai-sdk/azure`: Vercel AI SDK and Azure AI SDK.
+- `react-markdown`: For rendering markdown content within the chatbot.
+
+Alternatively, clone the [project repository](https://github.com/mpeniket/intro-text-mod-prompt-shields) to your machine and run `npm install` to install the dependencies automatically.
 
 ### 3. Configure Environment Variables
 
