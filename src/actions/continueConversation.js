@@ -45,9 +45,9 @@ export async function continueConversation(history) {
 
   (async () => {
     const requiredEnvVars = [
-      "AZURE_OPENAI_RESOURCE_NAME_4o",
-      "AZURE_OPENAI_API_KEY_4o",
-      "AZURE_OPENAI_DEPLOYMENT_NAME_4o",
+      "AZURE_OPENAI_RESOURCE_NAME",
+      "AZURE_OPENAI_API_KEY",
+      "AZURE_OPENAI_DEPLOYMENT_NAME",
     ];
 
     for (const envVar of requiredEnvVars) {
@@ -59,14 +59,14 @@ export async function continueConversation(history) {
     }
 
     const azure = createAzure({
-      resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME_4o,
-      apiKey: process.env.AZURE_OPENAI_API_KEY_4o,
+      resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
+      apiKey: process.env.AZURE_OPENAI_API_KEY,
     });
 
     const systemMessage = generateSystemMessage();
 
     const { textStream } = await streamText({
-      model: azure(process.env.AZURE_OPENAI_DEPLOYMENT_NAME_4o),
+      model: azure(process.env.AZURE_OPENAI_DEPLOYMENT_NAME),
       system: systemMessage,
       messages: convertToCoreMessages(history),
       temperature: 0.6,
