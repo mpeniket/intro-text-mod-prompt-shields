@@ -22,6 +22,7 @@ import { continueConversation } from "@/actions/continueConversation";
 import { readStreamableValue } from "ai/rsc";
 import safetyCheck from "@/actions/safetyCheck";
 
+// Dynamically import ReactMarkdown, MessageBar, and PrimaryButton for compatibility of Fluent UI components with Next.js
 const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 const ClientSideMessageBar = dynamic(
   () => import("@fluentui/react").then((mod) => mod.MessageBar),
@@ -32,6 +33,7 @@ const ClientSidePrimaryButton = dynamic(
   { ssr: false }
 );
 
+// Conversation starters appear in the chatbot above the input field before the user sends a message
 const CONVERSATION_STARTERS = [
   "What can you help me with?",
   "Tell me more about your services.",
@@ -40,6 +42,7 @@ const CONVERSATION_STARTERS = [
 ];
 
 const GenericChatbot = () => {
+  // Initialise state variables
   const [starters, setStarters] = useState([]);
   const [isFirstSubmit, setIsFirstSubmit] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -52,10 +55,12 @@ const GenericChatbot = () => {
   const messageAreaRef = useRef(null);
   const [errorType, setErrorType] = useState(MessageBarType.error);
 
+  // Load conversation starters on component mount
   useEffect(() => {
     setStarters(CONVERSATION_STARTERS);
   }, []);
 
+  // Scroll to the bottom of the message area when new messages are added
   useEffect(() => {
     if (messages.length > 0) {
       scrollToBottom();
@@ -68,16 +73,19 @@ const GenericChatbot = () => {
     }
   }, []);
 
+  // Handle deletion of messages
   const handleDelete = useCallback((id) => {
     setMessages((messages) =>
       messages.filter((_, index) => index.toString() !== id)
     );
   }, []);
 
+  // Handle the user clicking on a conversation starter
   const handleStarterClick = useCallback((starter) => {
     setLocalInput((input) => (input.trim() + " " + starter).trim());
   }, []);
 
+  // Handle message submission
   const handleFormSubmit = useCallback(
     async (e) => {
       if (typeof window === "undefined") return;
@@ -142,6 +150,7 @@ const GenericChatbot = () => {
       setLocalInput("");
       setIsLoading(true);
 
+      // Continue the conversation
       try {
         const { messages: updatedMessages, newMessage } =
           await continueConversation([...messages, userMessage]);
@@ -165,6 +174,7 @@ const GenericChatbot = () => {
     [isFirstSubmit, localInput, messages]
   );
 
+  // Render the message content using ReactMarkdown
   const renderMessageContent = useCallback((content) => {
     if (typeof window === "undefined") return null;
 
@@ -196,8 +206,10 @@ const GenericChatbot = () => {
     );
   }, []);
 
+  // Filter messages to prevent unnecessary re-renders
   const filteredMessages = useMemo(() => messages, [messages]);
 
+  // Create a forward ref for the message area
   const ForwardRefStack = React.forwardRef((props, ref) => (
     <Stack {...props} elementRef={ref} />
   ));
@@ -205,187 +217,216 @@ const GenericChatbot = () => {
   ForwardRefStack.displayName = "ForwardRefStack";
 
   return (
+    // Multiple Stack components are used to create the layout of the chatbot
     <Stack
-      horizontalAlign="center"
       verticalAlign="center"
+      horizontalAlign="center"
       styles={{
         root: {
-          width: "100%",
-          maxWidth: "1600px",
-          margin: "0 auto",
-          height: "100%",
+          minHeight: "100vh",
           padding: "20px",
-          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+          backgroundColor: "#f3f2f1",
           borderRadius: "8px",
         },
       }}
     >
       <Stack
-        tokens={{ childrenGap: 15 }}
+        horizontalAlign="center"
+        verticalAlign="center"
         styles={{
           root: {
             width: "100%",
-            backgroundColor: "#ffffff",
-            borderRadius: "8px",
+            maxWidth: "1600px",
+            margin: "0 auto",
+            height: "100%",
             padding: "20px",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+            borderRadius: "8px",
           },
         }}
       >
-        <Label
-          styles={{
-            root: { fontSize: "20px", fontWeight: "bold", color: "#333333" },
-          }}
-        >
-          AI Chatbot
-        </Label>
-        {error && (
-          <ClientSideMessageBar
-            messageBarType={errorType}
-            isMultiline={false}
-            onDismiss={() => setError(null)}
-            dismissButtonAriaLabel="Close"
-          >
-            {error}
-          </ClientSideMessageBar>
-        )}
-        <ClientSideMessageBar
-          messageBarType={MessageBarType.warning}
-          isMultiline={false}
-        >
-          Be careful - the chatbot might make mistakes. Please double-check
-          important information.
-        </ClientSideMessageBar>
-        <ForwardRefStack
-          verticalFill
-          styles={{
-            root: { height: "55vh", overflowY: "auto", padding: "10px 0" },
-          }}
-          tokens={{ childrenGap: 10 }}
-          ref={messageAreaRef}
-        >
-          {filteredMessages.map((message, index) => (
-            <Stack
-              key={index}
-              horizontal
-              horizontalAlign={message.role === "user" ? "end" : "start"}
-              styles={{ root: { padding: "10px 0" } }}
-            >
-              {message.role === "user" ? (
-                <Persona
-                  size={PersonaSize.size32}
-                  styles={{
-                    root: { marginRight: "8px" },
-                  }}
-                />
-              ) : (
-                <Persona
-                  size={PersonaSize.size32}
-                  imageInitials="AI"
-                  styles={{
-                    root: { marginLeft: "8px" },
-                  }}
-                />
-              )}
-              <Stack
-                styles={{
-                  root: {
-                    padding: "5px 15px",
-                    borderRadius: "4px",
-                    backgroundColor:
-                      message.role === "user" ? "#0078d4" : "#f3f2f1",
-                    color: message.role === "user" ? "white" : "black",
-                    maxWidth: "60%",
-                    wordBreak: "break-word",
-                    overflowWrap: "break-word",
-                    overflow: "hidden",
-                  },
-                }}
-              >
-                {renderMessageContent(message.content)}
-              </Stack>
-              <IconButton
-                iconProps={{ iconName: "Delete" }}
-                title="Delete message"
-                id="delete-message"
-                onClick={() => handleDelete(index.toString())}
-                styles={{ root: { marginLeft: "8px", color: "#a4262c" } }}
-              />
-            </Stack>
-          ))}
-          {isLoading && (
-            <Spinner
-              size={SpinnerSize.small}
-              label="Our AI is thinking..."
-              labelPosition="right"
-            />
-          )}
-        </ForwardRefStack>
-        <Separator />
         <Stack
-          horizontal
+          tokens={{ childrenGap: 15 }}
           styles={{
             root: {
-              paddingTop: isFirstSubmit ? "10px" : "0",
-              height: isFirstSubmit ? "auto" : "0",
-              overflow: "hidden",
-              transition: "height 0.3s ease-in-out",
+              width: "100%",
+              backgroundColor: "#ffffff",
+              borderRadius: "8px",
+              padding: "20px",
             },
           }}
-          tokens={{ childrenGap: 10 }}
         >
-          {isFirstSubmit &&
-            starters.map((starter, index) => (
-              <Label
-                key={index}
-                styles={{
-                  root: {
-                    padding: "5px 10px",
-                    backgroundColor: "#e1dfdd",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  },
-                }}
-                onClick={() => handleStarterClick(starter)}
-              >
-                {starter}
-              </Label>
-            ))}
-        </Stack>
-        <Stack
-          as="form"
-          onSubmit={handleFormSubmit}
-          horizontal
-          verticalAlign="end"
-          styles={{ root: { paddingTop: "5px" } }}
-          tokens={{ childrenGap: 10 }}
-        >
-          <TextField
-            id="chatbot-input-field"
-            placeholder="Start messaging"
-            value={localInput}
-            onChange={(e) => setLocalInput(e.target.value)}
-            styles={{ root: { flexGrow: 1 } }}
-            multiline
-            rows={3}
-            resizable={false}
-            autoComplete="off"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleFormSubmit(e);
-              }
+          {/* Chatbot title */}
+          <Label
+            styles={{
+              root: { fontSize: "20px", fontWeight: "bold", color: "#333333" },
             }}
-          />
-          <ClientSidePrimaryButton
-            id="send-button"
-            text="Send"
-            onClick={handleFormSubmit}
-            disabled={isLoading || !localInput.trim()}
-            iconProps={{ iconName: "Send" }}
-          />
+          >
+            AI Chatbot
+          </Label>
+
+          {/* Error message bar */}
+          {error && (
+            <ClientSideMessageBar
+              messageBarType={errorType}
+              isMultiline={false}
+              onDismiss={() => setError(null)}
+              dismissButtonAriaLabel="Close"
+            >
+              {error}
+            </ClientSideMessageBar>
+          )}
+
+          {/* Warning message bar */}
+          <ClientSideMessageBar
+            messageBarType={MessageBarType.warning}
+            isMultiline={false}
+          >
+            Be careful - the chatbot might make mistakes. Please double-check
+            important information.
+          </ClientSideMessageBar>
+
+          {/* Message area */}
+          <ForwardRefStack
+            verticalFill
+            styles={{
+              root: { height: "55vh", overflowY: "auto", padding: "10px 0" },
+            }}
+            tokens={{ childrenGap: 10 }}
+            ref={messageAreaRef}
+          >
+            {filteredMessages.map((message, index) => (
+              <Stack
+                key={index}
+                horizontal
+                horizontalAlign={message.role === "user" ? "end" : "start"}
+                styles={{ root: { padding: "10px 0" } }}
+              >
+                {message.role === "user" ? (
+                  <Persona
+                    size={PersonaSize.size32}
+                    styles={{
+                      root: { marginRight: "8px" },
+                    }}
+                  />
+                ) : (
+                  <Persona
+                    size={PersonaSize.size32}
+                    imageInitials="AI"
+                    styles={{
+                      root: { marginLeft: "8px" },
+                    }}
+                  />
+                )}
+                <Stack
+                  styles={{
+                    root: {
+                      padding: "5px 15px",
+                      borderRadius: "4px",
+                      backgroundColor:
+                        message.role === "user" ? "#0078d4" : "#f3f2f1",
+                      color: message.role === "user" ? "white" : "black",
+                      maxWidth: "60%",
+                      wordBreak: "break-word",
+                      overflowWrap: "break-word",
+                      overflow: "hidden",
+                    },
+                  }}
+                >
+                  {renderMessageContent(message.content)}
+                </Stack>
+                <IconButton
+                  iconProps={{ iconName: "Delete" }}
+                  title="Delete message"
+                  id="delete-message"
+                  onClick={() => handleDelete(index.toString())}
+                  styles={{ root: { marginLeft: "8px", color: "#a4262c" } }}
+                />
+              </Stack>
+            ))}
+
+            {/* Loading spinner */}
+            {isLoading && (
+              <Spinner
+                size={SpinnerSize.small}
+                label="Our AI is thinking..."
+                labelPosition="right"
+              />
+            )}
+          </ForwardRefStack>
+          <Separator />
+
+          {/* Starters */}
+          <Stack
+            horizontal
+            styles={{
+              root: {
+                paddingTop: isFirstSubmit ? "10px" : "0",
+                height: isFirstSubmit ? "auto" : "0",
+                overflow: "hidden",
+                transition: "height 0.3s ease-in-out",
+              },
+            }}
+            tokens={{ childrenGap: 10 }}
+          >
+            {isFirstSubmit &&
+              starters.map((starter, index) => (
+                <Label
+                  key={index}
+                  styles={{
+                    root: {
+                      padding: "5px 10px",
+                      backgroundColor: "#e1dfdd",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    },
+                  }}
+                  onClick={() => handleStarterClick(starter)}
+                >
+                  {starter}
+                </Label>
+              ))}
+          </Stack>
+
+          {/* Input field and send button */}
+          <Stack
+            as="form"
+            onSubmit={handleFormSubmit}
+            horizontal
+            verticalAlign="end"
+            styles={{ root: { paddingTop: "5px" } }}
+            tokens={{ childrenGap: 10 }}
+          >
+            <TextField
+              id="chatbot-input-field"
+              placeholder="Start messaging"
+              value={localInput}
+              onChange={(e) => setLocalInput(e.target.value)}
+              styles={{ root: { flexGrow: 1 } }}
+              multiline
+              rows={3}
+              resizable={false}
+              autoComplete="off"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleFormSubmit(e);
+                }
+              }}
+            />
+
+            {/* Send button */}
+            <ClientSidePrimaryButton
+              id="send-button"
+              text="Send"
+              onClick={handleFormSubmit}
+              disabled={isLoading || !localInput.trim()}
+              iconProps={{ iconName: "Send" }}
+            />
+          </Stack>
         </Stack>
       </Stack>
     </Stack>

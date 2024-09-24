@@ -4,6 +4,7 @@ export default async function promptShield(
   userPrompt
 ) {
   try {
+    // Check if the required environment variables are set
     if (!process.env.AZURE_CONTENT_SAFETY_ENDPOINT) {
       throw new Error(
         "Missing environment variable: AZURE_CONTENT_SAFETY_ENDPOINT"
@@ -12,6 +13,8 @@ export default async function promptShield(
     if (!process.env.AZURE_CONTENT_SAFETY_KEY) {
       throw new Error("Missing environment variable: AZURE_CONTENT_SAFETY_KEY");
     }
+
+    // Create a request to the Prompt Shield (text:shieldPrompt) API
     const urlPromptShield = `${process.env.AZURE_CONTENT_SAFETY_ENDPOINT}/text:shieldPrompt?api-version=2024-02-15-preview`;
     const key = process.env.AZURE_CONTENT_SAFETY_KEY;
 
@@ -27,10 +30,12 @@ export default async function promptShield(
       }),
     });
 
+    // Check if the response is successful
     if (!contentSafetyResponse.ok) {
       throw new Error("Failed to check prompt safety");
     }
 
+    // Parse the response
     const contentSafetyResponseBody =
       await contentSafetyResponse.json();
     const attackDetected =

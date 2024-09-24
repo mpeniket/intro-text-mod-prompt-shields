@@ -4,6 +4,7 @@ export default async function textModeration(
   userPrompt
 ) {
   try {
+    // Check if the required environment variables are set
     if (!process.env.AZURE_CONTENT_SAFETY_ENDPOINT) {
       throw new Error(
         "Missing environment variable: AZURE_CONTENT_SAFETY_ENDPOINT"
@@ -12,8 +13,9 @@ export default async function textModeration(
     if (!process.env.AZURE_CONTENT_SAFETY_KEY) {
       throw new Error("Missing environment variable: AZURE_CONTENT_SAFETY_KEY");
     }
-    const key = process.env.AZURE_CONTENT_SAFETY_KEY;
 
+    // Create a request to the Text Moderation (text:analyze) API
+    const key = process.env.AZURE_CONTENT_SAFETY_KEY;
     const urlTextModeration = `${process.env.AZURE_CONTENT_SAFETY_ENDPOINT}/text:analyze?api-version=2023-10-01`;
 
     const textModerationResponse = await fetch(urlTextModeration, {
@@ -30,10 +32,12 @@ export default async function textModeration(
       }),
     });
 
+    // Check if the response is successful
     if (!textModerationResponse.ok) {
       throw new Error("Failed to moderate text");
     }
 
+    // Parse the response
     const textModerationResponseBody =
       await textModerationResponse.json();
     const { categoriesAnalysis } = textModerationResponseBody;
@@ -42,6 +46,7 @@ export default async function textModeration(
       returnCategoriesAnalysis[category.category] = category.severity;
     });
 
+    // Return the results
     return {
       returnCategoriesAnalysis,
     };

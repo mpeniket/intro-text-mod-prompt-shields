@@ -44,6 +44,7 @@ export async function continueConversation(history) {
   const stream = createStreamableValue();
 
   (async () => {
+    // Check if the required environment variables are set
     const requiredEnvVars = [
       "AZURE_OPENAI_RESOURCE_NAME",
       "AZURE_OPENAI_API_KEY",
@@ -58,6 +59,7 @@ export async function continueConversation(history) {
       }
     }
 
+    // Create an Azure OpenAI client
     const azure = createAzure({
       resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
       apiKey: process.env.AZURE_OPENAI_API_KEY,
@@ -65,6 +67,7 @@ export async function continueConversation(history) {
 
     const systemMessage = generateSystemMessage();
 
+    // Stream the text
     const { textStream } = await streamText({
       model: azure(process.env.AZURE_OPENAI_DEPLOYMENT_NAME),
       system: systemMessage,
@@ -79,6 +82,7 @@ export async function continueConversation(history) {
     stream.done();
   })();
 
+  // Return the messages and the new message
   return {
     messages: history,
     newMessage: stream.value,
