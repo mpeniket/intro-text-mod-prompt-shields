@@ -135,8 +135,6 @@ We will create server-side functions to perform text moderation and prompt shiel
 Create a file at `actions/textModeration.ts`:
 
 ```javascript
-"use server";
-
 export default async function textModeration(userPrompt) {
   try {
     // Insert .env variable checks here
@@ -192,8 +190,6 @@ This code analyses user input for harmful content with the text moderation (`tex
 Create a file at `actions/promptShield.ts`:
 
 ```javascript
-"use server";
-
 export default async function promptShield(userPrompt) {
   try {
     if (!process.env.AZURE_CONTENT_SAFETY_ENDPOINT) {
@@ -244,8 +240,6 @@ export default async function promptShield(userPrompt) {
 Create `actions/safetyCheck.ts` and incorporate the following code:
 
 ```javascript
-"use server";
-
 import promptShield from "./promptShield";
 import textModeration from "./textModeration";
 
@@ -281,8 +275,6 @@ This code centralises safety checks by combining both prompt shielding and text 
 Create a file at `actions/continueConversation.ts`:
 
 ```javascript
-"use server";
-
 import { streamText, convertToCoreMessages } from "ai";
 import { createAzure } from "@ai-sdk/azure";
 import { createStreamableValue } from "ai/rsc";
@@ -322,7 +314,6 @@ const generateSystemMessage = () => {
 };
 
 export async function continueConversation(history: any[]) {
-  console.log("continue conversation");
 
   const stream = createStreamableValue();
 
