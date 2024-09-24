@@ -98,7 +98,7 @@ cd intro-text-mod-prompt-shields
 
 Install the required dependencies:
 ```bash
-npm install @fluentui/react ai @ai-sdk/azure @fluentui/web-components
+npm install @fluentui/react ai @ai-sdk/azure @fluentui/web-components react-markdown
 ```
 
 - `@fluentui/react` and `@fluentui/web-components`: For UI components.
