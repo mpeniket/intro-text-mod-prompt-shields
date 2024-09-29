@@ -570,4 +570,4 @@ Feel free to reach out to me on [LinkedIn](https://www.linkedin.com/in/matt-peni
 
 ---
 
-**Note:** Code snippets provided are simplified for clarity. Ensure you handle errors and edge cases appropriately in a production environment.
+**Note:** Code snippets provided are simplified for clarity. Ensure you handle errors and edge cases appropriately in a production environment.  Thank you to Dr @Anchit Chandran whose initial back-end content safety code provided a framework for adaptations.
