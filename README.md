@@ -244,7 +244,7 @@ export default async function promptShield(
 
 ### 3. Combining Both Checks
 
-Create `actions/safetyCheck.ts` and incorporate the following code:
+Create `actions/safetyCheck.js` and incorporate the following code:
 
 ```javascript
 import promptShield from "./promptShield";
@@ -270,7 +270,7 @@ export default async function safetyCheck(userPrompt) {
 }
 ```
 
-*Please note:* you may also wish to incorporate [Azure content safety image moderation](https://learn.microsoft.com/en-us/azure/ai-services/content-safety/quickstart-image) if your chatbot incorporate image input / output.  This can be done by creating a new file, `actions/imageModeration.ts`, and following the same pattern as the text moderation and prompt shielding functions.  Please see
+*Please note:* you may also wish to incorporate [Azure content safety image moderation](https://learn.microsoft.com/en-us/azure/ai-services/content-safety/quickstart-image) if your chatbot incorporate image input / output.  This can be done by creating a new file, `actions/imageModeration.js`, and following the same pattern as the text moderation and prompt shielding functions.  Please see
 
 **Explanation:**
 
@@ -285,7 +285,7 @@ This code centralises safety checks by combining both prompt shielding and text 
 
 To set up the back-end for the chatbot create a server action at `actions/continueConversation.js`.  This incorporates the [Microsoft safety system message](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/system-message) to help decrease the risk of harmful model output.
 
-Create a file at `actions/continueConversation.ts`:
+Create a file at `actions/continueConversation.js`:
 
 ```javascript
 import { streamText, convertToCoreMessages } from "ai";
