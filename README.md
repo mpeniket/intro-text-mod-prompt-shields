@@ -388,12 +388,12 @@ const CONVERSATION_STARTERS = [
 
 const GenericChatbot = () => {
   // React state and ref variables for the chatbot component
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState([]);
   const [localInput, setLocalInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [errorType, setErrorType] = useState(MessageBarType.error);
-  const messageAreaRef = useRef<HTMLDivElement>(null);
+  const messageAreaRef = useRef(null);
 
   // Insert other chatbot functions here - see the repository for full details
 
