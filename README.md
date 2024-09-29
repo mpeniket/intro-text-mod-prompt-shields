@@ -559,7 +559,7 @@ We've built a Next.js chatbot with a Fluent UI front-end that integrates Azure A
 
 ---
 
-By following this guide, you should now have a foundational understanding of integrating Azure AI Content Safety text moderation and prompt shields into a Next.js application using the Vercel AI SDK and Microsoft Fluent UI.
+By following this guide, you should now have a foundational understanding of how to integrate Azure AI Content Safety text moderation and prompt shields into a Next.js application using the Vercel AI SDK and Microsoft Fluent UI.
 
 Feel free to reach out to me on [LinkedIn](https://www.linkedin.com/in/matt-peniket-6a051318a/) if you would like to connect.
 
