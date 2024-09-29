@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This guide is designed for beginners who want to integrate Azure AI Content Safety into their chatbots. We'll build a simple chatbot using JavaScript, React, and Next.js that incorporates Azure's text moderation and prompt shields to prevent the generation of harmful content. We'll also use Microsoft Fluent UI for styling our front-end components. Whilst we use JavaScript and Next.js for this guide, the concepts discussed within can be applied to other languages, frameworks and libraries.
+This guide is designed for beginners who want to integrate Azure AI Content Safety into their chatbots. We'll build a simple chatbot using JavaScript, React, and Next.js that incorporates Azure's text moderation and prompt shields to prevent the generation of harmful content. We'll also use Microsoft Fluent UI for styling our front-end components. While we use JavaScript and Next.js for this guide, the concepts discussed within can be applied to other languages, frameworks and libraries.
 
 The repository accompanying this blog can be found [here](https://github.com/mpeniket/intro-text-mod-prompt-shields).
 
@@ -24,7 +24,7 @@ The repository accompanying this blog can be found [here](https://github.com/mpe
     - [1. Create an Azure Account](#1-create-an-azure-account)
     - [2. Create a Content Safety Resource](#2-create-a-content-safety-resource)
     - [3. Create an Azure OpenAI Resource](#3-create-an-azure-openai-resource)
-  - [Initialising the Next.js Project](#initialising-the-nextjs-project)
+  - [Initializing the Next.js Project](#initializing-the-nextjs-project)
     - [1. Set Up the Project](#1-set-up-the-project)
     - [2. Install Dependencies](#2-install-dependencies)
     - [3. Configure Environment Variables](#3-configure-environment-variables)
@@ -85,7 +85,7 @@ If you don't have one, [sign up for a free Azure account](https://azure.microsof
 
 ---
 
-## Initialising the Next.js Project
+## Initializing the Next.js Project
 
 ### 1. Set Up the Project
 
@@ -188,7 +188,7 @@ export default async function textModeration(
 
 **Explanation:**
 
-This code analyses user input for harmful content with the text moderation (`text:analyze`) endpoint  It checks for `Hate`, `Sexual`, `SelfHarm`, and `Violence` [categories of harm](https://learn.microsoft.com/en-us/azure/architecture/guide/responsible-innovation/harms-modeling/type-of-harm), and parses the response from the API to get the severity levels for each category.  This can be returned to the front-end to display warnings or block inappropriate content.  You can determine what is the acceptable threshold for each category based on your application's requirements.
+This code analyzes user input for harmful content with the text moderation (`text:analyze`) endpoint.  It checks for `Hate`, `Sexual`, `SelfHarm`, and `Violence` [categories of harm](https://learn.microsoft.com/en-us/azure/architecture/guide/responsible-innovation/harms-modeling/type-of-harm), and parses the response from the API to get the severity levels for each category.  This can be returned to the front-end to display warnings or block inappropriate content.  You can determine what is the acceptable threshold for each category based on your application's requirements.
 
 ### 2. Prompt Shielding
 
@@ -270,7 +270,7 @@ export default async function safetyCheck(userPrompt) {
 }
 ```
 
-*Please note:* you may also wish to incorporate [Azure content safety image moderation](https://learn.microsoft.com/en-us/azure/ai-services/content-safety/quickstart-image) if your chatbot incorporate image input / output.  This can be done by creating a new file, `actions/imageModeration.js`, and following the same pattern as the text moderation and prompt shielding functions.  Please see
+*Please note:* you may also wish to incorporate [Azure content safety image moderation](https://learn.microsoft.com/en-us/azure/ai-services/content-safety/quickstart-image) if your chatbot incorporate image input / output.  This can be done by creating a new file, `actions/imageModeration.js`, and following the same pattern as the text moderation and prompt shielding functions.
 
 **Explanation:**
 
@@ -296,7 +296,7 @@ const generateSystemMessage = () => {
   return `You are a highly knowledgeable and helpful virtual assistant.
 
   ## Tone
-  Maintain a friendly, professional, and approachable tone in all your responses. Ensure the user feels they are receiving personalised, attentive support.
+  Maintain a friendly, professional, and approachable tone in all your responses. Ensure the user feels they are receiving personalized, attentive support.
 
   ## Guidelines
   - Provide clear, concise, and accurate information in response to user queries.
@@ -335,15 +335,15 @@ export async function continueConversation(history) {
 
     // Create an Azure OpenAI client
     const azure = createAzure({
-      resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME!,
-      apiKey: process.env.AZURE_OPENAI_API_KEY!,
+      resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
+      apiKey: process.env.AZURE_OPENAI_API_KEY,
     });
 
     const systemMessage = generateSystemMessage();
     
     // Stream the text
     const { textStream } = await streamText({
-      model: azure(process.env.AZURE_OPENAI_DEPLOYMENT_NAME!),
+      model: azure(process.env.AZURE_OPENAI_DEPLOYMENT_NAME),
       system: systemMessage,
       messages: convertToCoreMessages(history),
       temperature: 0.6,
@@ -440,12 +440,11 @@ const GenericChatbot = () => {
         setErrorType(MessageBarType.blocked);
         return;
       }
-    };
-
+    },
       // If safety check passes, proceed with conversation
       // Insert conversation logic here - see the repository for full details
     [localInput, messages]
-  );
+  )
 
 
   return (
@@ -488,7 +487,7 @@ npm run dev
 
 ### Text Moderation API
 
-- **Categories Analysed:** `Hate`, `Sexual`, `SelfHarm`, `Violence`.
+- **Categories Analyzed:** `Hate`, `Sexual`, `SelfHarm`, `Violence`.
 - **Severity Levels:** Each category returns a severity level from `0` (safe) to `4` (most severe).
 - **Response Structure:**
 
@@ -525,7 +524,7 @@ npm run dev
 {
   "userPromptAnalysis": {
     "attackDetected": true
-  },
+  }
 }
 ```
 
@@ -542,7 +541,7 @@ We've built a Next.js chatbot with a Fluent UI front-end that integrates Azure A
 
 **Potential Next Steps:**
 
-- **Personalise the user experience:** Ensure the chatbot is appropriate for your use case through altering the system message.
+- **Personalize the user experience:** Ensure the chatbot is appropriate for your use case through altering the system message.
 - **Chat with your own data:** Integrate grounding into the chatbot using, for example, retrieval augmented generation or alternative techniques.  Consider altering the Microsoft safety system message to ensure grounding in your content.  See [this solution accelerator](https://github.com/Azure-Samples/chat-with-your-data-solution-accelerator) for more information.
 - **Integrate image upload:** Allow users to input images where your chosen model supports image input.
 
