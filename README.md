@@ -2,12 +2,12 @@
 
 ## Introduction
 
-This guide is designed for beginners who want to integrate Microsoft Content Safety into their chatbots. We'll build a simple chatbot using JavaScript, React, and Next.js that incorporates Microsoft's text moderation and prompt shields to prevent the generation of harmful content. We'll also use Microsoft Fluent UI for styling our front-end components.  Whilst we use JavaScript and Next.js for this guide, the concepts discussed within can be applied to other languages, frameworks and libraries.
+This guide is designed for beginners who want to integrate Azure AI Content Safety into their chatbots. We'll build a simple chatbot using JavaScript, React, and Next.js that incorporates Azure's text moderation and prompt shields to prevent the generation of harmful content. We'll also use Microsoft Fluent UI for styling our front-end components. Whilst we use JavaScript and Next.js for this guide, the concepts discussed within can be applied to other languages, frameworks and libraries.
 
 **Prerequisites:**
 
 - Basic knowledge of JavaScript, React, and Next.js.
-- An Azure account with access to Azure Content Safety and Azure OpenAI services.
+- An Azure account with access to Azure AI Content Safety and Azure OpenAI services.
 - Node.js and npm installed on your machine.
 
 ---
@@ -17,7 +17,7 @@ This guide is designed for beginners who want to integrate Microsoft Content Saf
 - [A Beginner's Guide to Text Moderation and Prompt Shields for Large Language Model (LLM) Chatbots](#a-beginners-guide-to-text-moderation-and-prompt-shields-for-large-language-model-llm-chatbots)
   - [Introduction](#introduction)
   - [Table of Contents](#table-of-contents)
-  - [Overview of Microsoft Content Safety](#overview-of-microsoft-content-safety)
+  - [Overview of Azure AI Content Safety](#overview-of-azure-ai-content-safety)
   - [Setting Up Your Azure Resources](#setting-up-your-azure-resources)
     - [1. Create an Azure Account](#1-create-an-azure-account)
     - [2. Create a Content Safety Resource](#2-create-a-content-safety-resource)
@@ -44,11 +44,11 @@ This guide is designed for beginners who want to integrate Microsoft Content Saf
 
 ---
 
-## Overview of Microsoft Content Safety
+## Overview of Azure AI Content Safety
 
-Microsoft Content Safety provides AI-powered tools to detect and prevent harmful or inappropriate content in your applications. Key features include:
+Azure AI Content Safety provides AI-powered tools to detect and prevent harmful or inappropriate content in your applications. Key features include:
 
-- **Text moderation:** Analyses text to detect offensive or inappropriate content.
+- **Text moderation:** Analyzes text to detect offensive or inappropriate content.
 - **Prompt shields:** Protects AI models from malicious inputs that attempt to bypass safety protocols and 'jailbreak' the model.
 
 By integrating these services, you can enhance user safety and maintain the integrity of your application.
@@ -59,16 +59,16 @@ By integrating these services, you can enhance user safety and maintain the inte
 
 ### 1. Create an Azure Account
 
-If you don't have one, [sign up for a free Azure account](https://portal.azure.com).
+If you don't have one, [sign up for a free Azure account](https://azure.microsoft.com/free/).
 
 ### 2. Create a Content Safety Resource
 
-1. Go to the [Azure Portal](https://portal.azure.com/).
+1. Go to the [Azure Portal](https://portal.azure.com).
 2. Click **Create a resource** and search for **Azure AI Content Safety**.
 3. Follow the prompts to create the resource.
    - **Resource Group:** Create a new resource group or use an existing one.
    - **Region:** Select a supported region.
-   - **Name** Select a supported region.
+   - **Name:** Enter a unique name for your Content Safety resource.
    - **Pricing Tier:** Select the appropriate tier.
 4. After creation, navigate to your Content Safety resource.
 5. In the left-hand menu, click on **Keys and Endpoint**.
@@ -122,27 +122,30 @@ AZURE_CONTENT_SAFETY_ENDPOINT=your-content-safety-endpoint
 AZURE_CONTENT_SAFETY_KEY=your-content-safety-key
 ```
 
-Make sure to replace the placeholders with the actual values from your Azure resources.
+Make sure to replace the placeholders with the actual values from your Azure resources.  You can specify the chosen model here - for example, GPT-4o or GPT-4o mini.
 
 ---
 
 ## Implementing Content Safety Services
 
-We will create server-side functions to perform text moderation and prompt shielding using Azure Content Safety.
+We will create server-side functions as [Next.js server actions](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations) to perform text moderation and prompt shielding using Azure AI Content Safety.
 
 ### 1. Text Moderation
 
-Create a file at `actions/textModeration.ts`:
+Create a server action at `actions/textModeration.js`:
 
 ```javascript
-export default async function textModeration(userPrompt) {
+export default async function textModeration(
+  userPrompt
+) {
   try {
-    // Insert .env variable checks here
+    // Check if the required environment variables are set - code omitted for brevity
 
+    // Create a request to the Text Moderation (text:analyze) API
     const key = process.env.AZURE_CONTENT_SAFETY_KEY;
     const urlTextModeration = `${process.env.AZURE_CONTENT_SAFETY_ENDPOINT}/text:analyze?api-version=2023-10-01`;
 
-    const response = await fetch(urlTextModeration, {
+    const textModerationResponse = await fetch(urlTextModeration, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -155,18 +158,22 @@ export default async function textModeration(userPrompt) {
         outputType: "FourSeverityLevels",
       }),
     });
-    if (!response.ok) {
+
+    // Check if the response is successful
+    if (!textModerationResponse.ok) {
       throw new Error("Failed to moderate text");
     }
 
-    const responseBody = await response.json();
-
-    const { categoriesAnalysis } = responseBody;
-    let returnCategoriesAnalysis: any = {};
-    categoriesAnalysis.forEach((category: any) => {
+    // Parse the response
+    const textModerationResponseBody =
+      await textModerationResponse.json();
+    const { categoriesAnalysis } = textModerationResponseBody;
+    let returnCategoriesAnalysis = {};
+    categoriesAnalysis.forEach((category) => {
       returnCategoriesAnalysis[category.category] = category.severity;
     });
 
+    // Return the results
     return {
       returnCategoriesAnalysis,
     };
@@ -181,28 +188,22 @@ export default async function textModeration(userPrompt) {
 
 This code analyses user input for harmful content with the text moderation (`text:analyze`) endpoint  It checks for `Hate`, `Sexual`, `SelfHarm`, and `Violence` [categories of harm](https://learn.microsoft.com/en-us/azure/architecture/guide/responsible-innovation/harms-modeling/type-of-harm), and parses the response from the API to get the severity levels for each category.  This can be returned to the front-end to display warnings or block inappropriate content.  You can determine what is the acceptable threshold for each category based on your application's requirements.
 
-**What It Returns:**
-
-- An object containing the severity levels of each harm category detected in the text.
-
 ### 2. Prompt Shielding
 
-Create a file at `actions/promptShield.ts`:
+Create a server action at actions/promptShield.js:
 
 ```javascript
-export default async function promptShield(userPrompt) {
+export default async function promptShield(
+  userPrompt
+) {
   try {
-    if (!process.env.AZURE_CONTENT_SAFETY_ENDPOINT) {
-      throw new Error("Missing environment variable: AZURE_CONTENT_SAFETY_ENDPOINT");
-    }
-    if (!process.env.AZURE_CONTENT_SAFETY_KEY) {
-      throw new Error("Missing environment variable: AZURE_CONTENT_SAFETY_KEY");
-    }
+    // Check if the required environment variables are set - code omitted for brevity
+
+    // Create a request to the Prompt Shield (text:shieldPrompt) API
+    const urlPromptShield = `${process.env.AZURE_CONTENT_SAFETY_ENDPOINT}/text:shieldPrompt?api-version=2024-02-15-preview`;
     const key = process.env.AZURE_CONTENT_SAFETY_KEY;
 
-    const urlPromptShield = `${process.env.AZURE_CONTENT_SAFETY_ENDPOINT}/text:shieldPrompt?api-version=2024-02-15-preview`;
-
-    const response = await fetch(urlPromptShield, {
+    const contentSafetyResponse = await fetch(urlPromptShield, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -214,12 +215,16 @@ export default async function promptShield(userPrompt) {
       }),
     });
 
-    if (!response.ok) {
+    // Check if the response is successful
+    if (!contentSafetyResponse.ok) {
       throw new Error("Failed to check prompt safety");
     }
 
-    const responseBody = await response.json();
-    const attackDetected = responseBody.userPromptAnalysis.attackDetected;
+    // Parse the response
+    const contentSafetyResponseBody =
+      await contentSafetyResponse.json();
+    const attackDetected =
+      contentSafetyResponseBody.userPromptAnalysis.attackDetected;
 
     return {
       attackDetected,
@@ -245,9 +250,13 @@ import textModeration from "./textModeration";
 
 export default async function safetyCheck(userPrompt) {
   try {
+    // Prompt Shields
     const { attackDetected } = await promptShield(userPrompt);
+
+    // Text Moderation
     const { returnCategoriesAnalysis } = await textModeration(userPrompt);
 
+    // Return the results for front-end handling
     return {
       attackDetected,
       returnCategoriesAnalysis,
@@ -271,6 +280,8 @@ This code centralises safety checks by combining both prompt shielding and text 
 ---
 
 ## Setting Up the Conversation Logic
+
+To set up the back-end for the chatbot create a server action at `actions/continueConversation.js`.  This incorporates the [Microsoft safety system message](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/system-message) to help decrease the risk of harmful model output.
 
 Create a file at `actions/continueConversation.ts`:
 
@@ -313,20 +324,22 @@ const generateSystemMessage = () => {
   Your primary goal is to be helpful, efficient, and accurate, ensuring that users have a positive and productive experience.`;
 };
 
-export async function continueConversation(history: any[]) {
+export async function continueConversation(history) {
 
   const stream = createStreamableValue();
 
   (async () => {
-    // Insert .env variable checks here
+    // Check if the required environment variables are set - code omitted for brevity
 
+    // Create an Azure OpenAI client
     const azure = createAzure({
       resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME!,
       apiKey: process.env.AZURE_OPENAI_API_KEY!,
     });
 
     const systemMessage = generateSystemMessage();
-
+    
+    // Stream the text
     const { textStream } = await streamText({
       model: azure(process.env.AZURE_OPENAI_DEPLOYMENT_NAME!),
       system: systemMessage,
@@ -335,6 +348,7 @@ export async function continueConversation(history: any[]) {
       maxTokens: 2500,
     });
 
+    // Return the messages and the new message
     for await (const text of textStream) {
       stream.update(text);
     }
@@ -350,8 +364,7 @@ export async function continueConversation(history: any[]) {
 
 **Explanation:**
 
-This code facilitates the chatbot n with the user using Azure OpenAI, using the Microsoft Sets the assistant's behaviour and guidelines.
-- **Azure OpenAI Integration:** Uses `createAzure` and `streamText` to generate responses.
+This code sets up the chatbot backend for streaming responses using the [Vercel AI SDK text streaming functionality](https://sdk.vercel.ai/docs/reference/ai-sdk-core/stream-text) with Azure as the OpenAI model provider.
 
 ---
 
@@ -359,7 +372,7 @@ This code facilitates the chatbot n with the user using Azure OpenAI, using the 
 
 ### Creating the Chatbot Component
 
-Create `components/GenericChatbot.js`:
+Create a component `components/GenericChatbot.js` for displaying the chatbot within your application:
 
 ```jsx
 // Insert UI, React, and Next.js imports and processing here - see the repository for full details
@@ -443,7 +456,7 @@ export default GenericChatbot;
 
 **Explanation:**
 
-This code calls the back-end `safetyCheck` function before sending messages to the LLM API, and displays appropriate error messages if safety issues are detected.  It uses Fluent UI components for a consistent look and feel.
+This code calls the back-end `safetyCheck` function before sending messages to the LLM API, and displays appropriate error messages if safety issues are detected.  It uses Fluent UI components for a consistent look and feel (see the repository for the full user interface implementation).
 
 ---
 
@@ -523,13 +536,13 @@ npm run dev
 
 ## Conclusion and Next Steps
 
-We've built a Next.js chatbot with a Fluent UI front-end that integrates Microsoft Content Safety services using the Vercel AI SDK with Azure as a model provider. By implementing text moderation and prompt shields, we decrease the risk of harmful content generation.
+We've built a Next.js chatbot with a Fluent UI front-end that integrates Azure AI Content Safety services using the Vercel AI SDK with Azure as a model provider. By implementing text moderation and prompt shields, we decrease the risk of harmful content generation.
 
 **Potential Next Steps:**
 
 - **Personalise the user experience:** Ensure the chatbot is appropriate for your use case through altering the system message.
 - **Chat with your own data:** Integrate grounding into the chatbot using, for example, retrieval augmented generation or alternative techniques.  Consider altering the Microsoft safety system message to ensure grounding in your content.  See [this solution accelerator](https://github.com/Azure-Samples/chat-with-your-data-solution-accelerator) for more information.
-- **Integrate image upload:** Consider deploying your application to a hosting platform like Vercel or Azure.
+- **Integrate image upload:** Allow users to input images where your chosen model supports image input.
 
 ---
 
@@ -544,7 +557,7 @@ We've built a Next.js chatbot with a Fluent UI front-end that integrates Microso
 
 ---
 
-By following this guide, you should now have a foundational understanding of integrating Microsoft Content Safety into a Next.js application using the Vercel AI SDK and Microsoft Fluent UI.
+By following this guide, you should now have a foundational understanding of integrating Azure AI Content Safety text moderation and prompt shields into a Next.js application using the Vercel AI SDK and Microsoft Fluent UI.
 
 Feel free to reach out to me on [LinkedIn](https://www.linkedin.com/in/matt-peniket-6a051318a/) if you would like to connect.
 
