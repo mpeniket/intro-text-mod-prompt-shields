@@ -549,7 +549,7 @@ We've built a Next.js chatbot that integrates Azure AI Content Safety services u
 
 - **Personalize the user experience:** Ensure the chatbot is appropriate for your use case through altering the system message.
 - **Chat with your own data:** Integrate grounding into the chatbot using, for example, retrieval augmented generation or alternative techniques.  Consider altering the Microsoft safety system message to ensure grounding in your content.  See [this solution accelerator](https://github.com/Azure-Samples/chat-with-your-data-solution-accelerator) for more information.
-- **Integrate image upload:** Allow users to input images where your chosen model supports image input.
+- **Integrate image upload:** Allow users to input images where your chosen model supports image input.  Integrate Azure AI Content Safety for images uploaded.
 
 ---
 
