@@ -4,7 +4,7 @@
 
 This guide is designed for beginners who want to integrate Azure AI Content Safety into their chatbots. We'll build a simple chatbot using JavaScript, React, and Next.js that incorporates Azure's text moderation and prompt shields to prevent the generation of harmful content. We'll also use Microsoft Fluent UI for styling our front-end components. Whilst we use JavaScript and Next.js for this guide, the concepts discussed within can be applied to other languages, frameworks and libraries.
 
-The repository accompanying this project can be found [here](https://github.com/mpeniket/intro-text-mod-prompt-shields).
+The repository accompanying this blog can be found [here](https://github.com/mpeniket/intro-text-mod-prompt-shields).
 
 **Prerequisites:**
 
